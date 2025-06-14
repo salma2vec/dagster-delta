@@ -244,7 +244,6 @@ def test_multi_partitioned_to_multi_partitioned_asset(
 
 
 def test_multi_partitioned_to_single_partitioned_asset_colors(
-    tmp_path,
     io_manager: DeltaLakePyarrowIOManager,
 ):
     resource_defs = {"io_manager": io_manager}
@@ -261,24 +260,6 @@ def test_multi_partitioned_to_single_partitioned_asset_colors(
 
         multi_partitioned_asset_1_data = res.asset_value(multi_partitioned_asset_1.key)
         multi_partitioned_asset_1_data_all.append(multi_partitioned_asset_1_data)
-
-    # res = materialize(
-    #     [multi_partitioned_asset_1, single_partitioned_asset_date],
-    #     partition_key="2022-01-01",
-    #     resources=resource_defs,
-    #     selection=[single_partitioned_asset_date],
-    # )
-    # assert res.success
-
-    # single_partitioned_asset_date_data = res.asset_value(single_partitioned_asset_date.key)
-
-    # assert single_partitioned_asset_date_data.sort_by("color_column") == pa.concat_tables(
-    #     multi_partitioned_asset_1_data_all,
-    # ).sort_by("color_column")
-
-    # dt = DeltaTable(os.path.join(str(tmp_path), "/".join(single_partitioned_asset_date.key.path)))
-    # assert dt.metadata().partition_columns == ["date_column"]
-    # assert single_partitioned_asset_date_data == dt.to_pyarrow_table()
 
 
 def test_multi_partitioned_to_single_partitioned_asset_dates(
