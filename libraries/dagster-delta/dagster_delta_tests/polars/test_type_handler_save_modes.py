@@ -115,8 +115,9 @@ def test_deltalake_io_manager_with_ops_mode_overridden(tmp_path, io_manager):
 
     # run the job twice to ensure that tables get properly deleted
 
-    a_df_result = [1, 2, 3]
-    add_one_result = [2, 3, 4]
+    a_df_result = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    add_one_result = pl.DataFrame({"a": [2, 3, 4], "b": [5, 6, 7]})
+    from polars.testing import assert_frame_equal
 
     for _ in range(2):
         res = job.execute_in_process()
@@ -124,12 +125,12 @@ def test_deltalake_io_manager_with_ops_mode_overridden(tmp_path, io_manager):
         assert res.success
 
         dt = DeltaTable(os.path.join(tmp_path, "a_df/result"))
-        out_df = dt.to_pyarrow_table()
-        assert out_df["a"].to_pylist() == a_df_result
+        out_df = pl.DataFrame(dt.to_pyarrow_table())
+        assert_frame_equal(out_df, a_df_result, check_row_order=False)
 
         dt = DeltaTable(os.path.join(tmp_path, "add_one/result"))
-        out_df = dt.to_pyarrow_table()
-        assert out_df["a"].to_pylist() == add_one_result
+        out_df = pl.DataFrame(dt.to_pyarrow_table())
+        assert_frame_equal(out_df, add_one_result, check_row_order=False)
 
-        a_df_result.extend(a_df_result)
-        add_one_result.extend(add_one_result)
+        a_df_result = pl.concat([a_df_result, a_df_result])
+        add_one_result = pl.concat([add_one_result, add_one_result])
