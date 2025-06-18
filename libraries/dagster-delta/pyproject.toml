@@ -22,7 +22,7 @@ keywords = ["dagster", "deltalake", "delta","datalake", "io manager", "polars", 
 
 [project.optional-dependencies]
 polars = [
-    "polars>=1.31.0b1"
+    "polars>=1.31.0"
 ]
 
 [build-system]
