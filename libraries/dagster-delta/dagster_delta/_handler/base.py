@@ -284,7 +284,6 @@ class DeltalakeBaseArrowTypeHandler(DbTypeHandler[T], Generic[T]):
             partition_filters = partition_dimensions_to_dnf(
                 partition_dimensions=table_slice.partition_dimensions,
                 table_schema=table.schema(),
-                input_dnf=True,
             )
 
             if partition_filters is not None:

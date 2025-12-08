@@ -41,7 +41,10 @@ def test_partition_dimensions_to_dnf(test_schema) -> None:
         ),
     ]
     dnf = partition_dimensions_to_dnf(parts, test_schema)
-    assert dnf == [("timestamp_col", "=", datetime(2020, 1, 2, 0, 0, 0))]
+    assert dnf == [
+        ("timestamp_col", ">=", datetime(2020, 1, 2, 0, 0, 0)),
+        ("timestamp_col", "<", datetime(2020, 2, 3, 0, 0, 0)),
+    ]
 
     parts = [
         TablePartitionDimension(
@@ -50,7 +53,7 @@ def test_partition_dimensions_to_dnf(test_schema) -> None:
         ),
     ]
     dnf = partition_dimensions_to_dnf(parts, test_schema)
-    assert dnf == [("date_col", "=", date(2020, 1, 2))]
+    assert dnf == [("date_col", ">=", date(2020, 1, 2)), ("date_col", "<", date(2020, 2, 3))]
 
 
 @op(out=Out(metadata={"schema": "a_df"}))

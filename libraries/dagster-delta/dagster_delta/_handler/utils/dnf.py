@@ -19,7 +19,6 @@ from deltalake.table import FilterLiteralType
 def partition_dimensions_to_dnf(
     partition_dimensions: Iterable[TablePartitionDimension],
     table_schema: Schema,
-    input_dnf: bool = False,  # during input we want to read a range when it's (un)-partitioned
     date_format: Optional[dict[str, str]] = None,
 ) -> Optional[list[FilterLiteralType]]:
     """Converts partition dimensions to dnf filters"""
@@ -36,7 +35,6 @@ def partition_dimensions_to_dnf(
                 filter_ = _time_window_partition_dnf(
                     partition_dimension,
                     field.type.type,
-                    input_dnf,
                 )
                 if isinstance(filter_, list):
                     parts.extend(filter_)
@@ -111,7 +109,6 @@ def _value_dnf(
 def _time_window_partition_dnf(
     table_partition: TablePartitionDimension,
     data_type: str,
-    input_dnf: bool,
 ) -> Union[FilterLiteralType, list[FilterLiteralType]]:
     if isinstance(table_partition.partitions, list):
         raise Exception(
@@ -128,7 +125,7 @@ def _time_window_partition_dnf(
             end_dt.date(),
         )
 
-    if input_dnf:
+    if start_dt != end_dt:
         return [
             (table_partition.partition_expr, ">=", start_dt),
             (table_partition.partition_expr, "<", end_dt),

@@ -77,7 +77,6 @@ class _DeltaLakePolarsTypeHandler(DeltalakeBaseArrowTypeHandler[PolarsTypes]):  
             partition_filters = partition_dimensions_to_dnf(
                 partition_dimensions=table_slice.partition_dimensions,
                 table_schema=table.schema(),
-                input_dnf=True,
                 date_format=date_format,
             )
             if partition_filters is not None:
