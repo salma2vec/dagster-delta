@@ -197,7 +197,6 @@ class BaseDeltaLakeIOManager(ConfigurableIOManagerFactory):
         return None
 
     def create_io_manager(self, context) -> CustomDbIOManager:  # noqa: D102, ANN001, ARG002
-        self.storage_options.model_dump()
         return CustomDbIOManager(
             db_client=DeltaLakeDbClient(),
             database="deltalake",
