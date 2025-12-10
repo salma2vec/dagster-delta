@@ -14,15 +14,25 @@ def create_predicate(
     target_alias: Optional[str] = None,
 ) -> str:
     partition_predicates = []
+
+    def to_sql_tuple(values: list[str]) -> str:
+        escaped = [v.replace("'", "''") for v in values]
+        quoted = [f"'{v}'" for v in escaped]
+        return f"({', '.join(quoted)})"
+
     for part_filter in partition_filters:
         column = f"{target_alias}.{part_filter[0]}" if target_alias is not None else part_filter[0]
         value = part_filter[2]
         if isinstance(value, (int, float, bool)):
             value = str(value)
         elif isinstance(value, str):
+            value = value.replace("'", "''")  # convert to double single quotes for sql parser
             value = f"'{value}'"
         elif isinstance(value, list):
-            value = str(tuple(v for v in value))
+            if all(isinstance(v, str) for v in value):
+                value = to_sql_tuple(value)
+            else:
+                value = str(tuple(v for v in value))
         elif isinstance(value, date):
             value = f"'{value.strftime(DELTA_DATE_FORMAT)}'"
         elif isinstance(value, datetime):
