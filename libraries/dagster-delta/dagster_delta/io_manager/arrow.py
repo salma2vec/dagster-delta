@@ -5,10 +5,12 @@ import dagster as dg
 from arro3.core import RecordBatchReader, Table
 from arro3.core.types import ArrowArrayExportable, ArrowStreamExportable
 from dagster._core.storage.db_io_manager import DbTypeHandler
+from deltalake import DeltaTable
 
 from dagster_delta._handler.base import ArrowTypes, DeltalakeBaseArrowTypeHandler
 from dagster_delta.io_manager.base import (
     BaseDeltaLakeIOManager as BaseDeltaLakeIOManager,
+    TableConnection,
 )
 
 
@@ -19,6 +21,17 @@ class DeltaLakePyarrowIOManager(BaseDeltaLakeIOManager):  # noqa: D101
 
 
 class _DeltaLakePyArrowTypeHandler(DeltalakeBaseArrowTypeHandler[ArrowTypes]):  # noqa: D101
+    def load_input(self, context, table_slice, connection: TableConnection) -> ArrowTypes:  # noqa: ANN001
+        if context.dagster_type.typing_type == DeltaTable:
+            version = (context.definition_metadata or {}).get("table_version")
+            return DeltaTable(
+                table_uri=connection.table_uri,
+                storage_options=connection.storage_options,
+                version=version,
+            )
+
+        return super().load_input(context, table_slice, connection)
+
     def from_arrow(
         self,
         obj: Union[ArrowStreamExportable, ArrowArrayExportable],
@@ -44,6 +57,9 @@ class _DeltaLakePyArrowTypeHandler(DeltalakeBaseArrowTypeHandler[ArrowTypes]):  
         self,
         obj: Union[ArrowStreamExportable, ArrowArrayExportable],
     ) -> ArrowStreamExportable:  # noqa: D102
+        if isinstance(obj, DeltaTable):
+            raise TypeError("DeltaTable is supported as an input type, not as an output value")
+
         return RecordBatchReader.from_arrow(obj)
 
     def get_output_stats(self, obj: ArrowTypes) -> dict[str, dg.MetadataValue]:  # noqa: ARG002 # type: ignore
@@ -60,7 +76,7 @@ class _DeltaLakePyArrowTypeHandler(DeltalakeBaseArrowTypeHandler[ArrowTypes]):  
     @property
     def supported_types(self) -> Sequence[type[object]]:
         """Returns the supported dtypes for this typeHandler"""
-        supported_types = [Table, RecordBatchReader]
+        supported_types = [Table, RecordBatchReader, DeltaTable]
         try:
             import pyarrow as pa
 

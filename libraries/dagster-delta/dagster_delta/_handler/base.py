@@ -31,11 +31,11 @@ from dagster_delta.io_manager.base import (
 
 T = TypeVar("T")
 
-ArrowTypes = Union[RecordBatchReader, Table]
+ArrowTypes = Union[RecordBatchReader, Table, DeltaTable]
 try:
     import pyarrow as pa
 
-    ArrowTypes = Union[RecordBatchReader, Table, pa.Table, pa.RecordBatchReader]
+    ArrowTypes = Union[RecordBatchReader, Table, pa.Table, pa.RecordBatchReader, DeltaTable]
 except ImportError:
     pass
 

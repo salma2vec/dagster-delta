@@ -77,6 +77,11 @@ def b_plus_one(b_df: pa.Table) -> pa.Table:
     return b_df.set_column(0, "a", pa.array([2, 3, 4]))
 
 
+@asset(key_prefix=["my_schema"])
+def b_table_version(b_df: DeltaTable) -> pa.Table:
+    return pa.Table.from_pydict({"version": [b_df.version()]})
+
+
 def test_deltalake_io_manager_with_assets(tmp_path, io_manager):
     resource_defs = {"io_manager": io_manager}
 
@@ -92,6 +97,17 @@ def test_deltalake_io_manager_with_assets(tmp_path, io_manager):
         dt = DeltaTable(os.path.join(tmp_path, "my_schema/b_plus_one"))
         out_df = dt.to_pyarrow_table()
         assert sorted(out_df["a"].to_pylist()) == [2, 3, 4]
+
+
+def test_deltalake_io_manager_loads_delta_table_inputs(tmp_path, io_manager):
+    resource_defs = {"io_manager": io_manager}
+
+    res = materialize([b_df, b_table_version], resources=resource_defs)
+    assert res.success
+
+    dt = DeltaTable(os.path.join(tmp_path, "my_schema/b_table_version"))
+    out_df = dt.to_pyarrow_table()
+    assert out_df["version"].to_pylist() == [0]
 
 
 def test_deltalake_io_manager_with_schema(tmp_path):
